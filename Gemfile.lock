@@ -1,0 +1,36 @@
+PATH
+  remote: ../net-telnet-rfc2217
+  specs:
+    net-telnet-rfc2217 (0.0.5)
+      net-telnet (~> 0.2.0)
+
+PATH
+  remote: .
+  specs:
+    monopricec10761 (0.0.1)
+      ccutrer-serialport (~> 1.0.0)
+      mqtt (~> 0.5.0)
+      net-telnet-rfc2217 (~> 0.0.3)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    byebug (9.0.6)
+    ccutrer-serialport (1.0.0)
+      ffi (~> 1.9, >= 1.9.3)
+    ffi (1.13.1)
+    mqtt (0.5.0)
+    net-telnet (0.2.0)
+    rake (13.0.1)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  byebug (~> 9.0)
+  monopricec10761!
+  net-telnet-rfc2217!
+  rake (~> 13.0)
+
+BUNDLED WITH
+   2.1.4
