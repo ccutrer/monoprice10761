@@ -3,6 +3,7 @@ require 'io/wait'
 module Monoprice10761
   class Amp
     attr_reader :zones
+    attr_accessor :zone_updated_proc
 
     def initialize(uri)
       uri = URI.parse(uri)
@@ -45,7 +46,7 @@ module Monoprice10761
           got_message($1) if message =~ /^#?>(\d{22})\r\r$/
           message.clear
         elsif message.empty? && byte == '#' && !@io.ready?
-          # wait for a tenth of a second
+          # wait for a 50ms
           break if sleep(0.05) && !@io.ready?
         else
           message << byte
@@ -126,6 +127,7 @@ module Monoprice10761
 
       zone = zones.by_id(zone_id)
       zone.assign_attributes(message)
+      zone_updated_proc&.call(zone)
     end
   end
 end
