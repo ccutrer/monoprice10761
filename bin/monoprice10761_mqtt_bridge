@@ -29,7 +29,7 @@ class MQTTBridge
         amp.send(action, zone_id, value)
       when %r{^(volume|treble|bass|balance|channel)/set$}
         action = $1.to_sym
-        next unless value =~ /^\d+$/
+        next unless value =~ /^(?:-)?\d+$/
         value = value.to_i
         begin
           amp.send(action, zone_id, value)
