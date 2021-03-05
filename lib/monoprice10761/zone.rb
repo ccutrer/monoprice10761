@@ -32,9 +32,6 @@ module Monoprice10761
       class_eval <<-RUBY, __FILE__, __LINE__ + 1
         def #{method}=(val)
           @owner.#{method}(id, val)
-          # return the current value of the attribute; if it was succesful it would have queried
-          # and updated it
-          #{method}
         end
       RUBY
     end

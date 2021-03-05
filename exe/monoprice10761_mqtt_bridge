@@ -1,0 +1,65 @@
+#!/usr/bin/env ruby
+
+require 'monoprice10761'
+require 'homie-mqtt'
+
+class MQTTBridge
+  def initialize(mqtt_uri, amp, device_id: "monoprice10761", base_topic: "homie")
+    @base_topic = "#{base_topic}/#{device_id}"
+
+    @homie = MQTT::Homie::Device.new(
+      device_id,
+      "Monoprice 10761 Multi-Zone Amp",
+      mqtt: mqtt_uri,
+      root_topic: base_topic)
+
+    @amp = amp
+    amp.zone_updated_proc = method(:zone_updated)
+
+    publish_basic_attributes
+
+    @homie.publish
+    @homie.join
+  end
+
+  def publish_basic_attributes
+    @amp.zones.each do |zone|
+      @homie.node("zone#{zone.id}", "Zone #{zone.id}", "Audio Zone") do |node|
+        node.property("pa", "Public Address Triggered", :boolean, zone.pa) { |val| zone.pa = val }
+        node.property("power", "Zone is On", :boolean, zone.power) { |val| zone.power = val }
+        node.property("mute", "Audio is Muted", :boolean, zone.mute) { |val| zone.mute = val }
+        node.property("do-not-disturb", "Do Not Disturb (PA Override) Enabled", :boolean, zone.do_not_disturb) { |val| zone.do_not_disturb = val }
+        node.property("volume", "Volume", :integer, zone.volume, format: 0..38) { |val| zone.volume = val }
+        node.property("treble", "Treble", :integer, zone.treble, format: 0..14) { |val| zone.treble = val }
+        node.property("bass", "Bass", :integer, zone.bass, format: 0..14) { |val| zone.bass = val }
+        node.property("balance", "L/R Balance", :integer, zone.balance, format: -10..10) { |val| zone.balance = val }
+        node.property("channel", "Input Channel", :integer, zone.channel, format: 1..6) { |val| zone.channel = val }
+        node.property("keypad-connected", "Keypad Connected", :booelan, zone.keypad_connected)
+      end
+    end
+  end
+
+  def zone_updated(zone)
+    node = @homie["zone#{zone.id}"]
+    @homie.mqtt.batch_publish do
+      node['pa'].value = zone.pa
+      node['power'].value = zone.power
+      node['mute'].value = zone.mute
+      node['do-not-disturb'].value = zone.do_not_disturb
+      node['volume'].value = zone.volume
+      node['treble'].value = zone.treble
+      node['bass'].value = zone.bass
+      node['balance'].value = zone.balance
+      node['channel'].value = zone.channel
+      node['keypad-connected'].value = zone.keypad_connected
+    end
+  end
+end
+
+mqtt_uri = ARGV.shift
+amp_uri = ARGV.shift
+device_id = ARGV.shift
+
+amp = Monoprice10761::Amp.new(amp_uri)
+
+MQTTBridge.new(mqtt_uri, amp, device_id: device_id || "monoprice10761")

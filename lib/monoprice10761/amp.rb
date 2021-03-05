@@ -12,10 +12,18 @@ module Monoprice10761
         TCPSocket.new(uri.host, uri.port)
       elsif uri.scheme == 'telnet' || uri.scheme == 'rfc2217'
         require 'net/telnet/rfc2217'
-        Net::Telnet::RFC2217.new("Host" => uri.host, "Port" => uri.port || 23, "baud" => 9600)
+        Net::Telnet::RFC2217.new(host: uri.host,
+          port: uri.port || 23, baud: 9600,
+          data_bits: 8,
+          parity: :none,
+          stop_bits: 1)
       else
         require 'ccutrer-serialport'
-        CCutrer::SerialPort.new(uri.path)
+        CCutrer::SerialPort.new(uri.path,
+          baud: 9600,
+          data_bits: 8,
+          parity: :none,
+          stop_bits: 1)
       end
 
       # clear out any pending commands
