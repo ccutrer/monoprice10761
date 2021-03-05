@@ -19,6 +19,14 @@ class MQTTBridge
     publish_basic_attributes
 
     @homie.publish
+
+    Thread.new do
+      loop do
+        sleep 1
+        @amp.refresh
+      end
+    end.join
+
     @homie.join
   end
 
