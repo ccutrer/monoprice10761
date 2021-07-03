@@ -7,6 +7,7 @@ module Monoprice10761
 
     def initialize(uri)
       uri = URI.parse(uri)
+      @mutex = Mutex.new
       @io = if uri.scheme == 'tcp'
         require 'socket'
         TCPSocket.new(uri.host, uri.port)
@@ -36,30 +37,6 @@ module Monoprice10761
       write("?30\r\n")
       write("?20\r\n")
       write("?10\r\n")
-    end
-
-    def wait_readable(*args)
-      @io.wait_readable(*args)
-    end
-      
-    def read_messages
-      return unless @io.ready?
-
-      message = ''
-      loop do
-        @io.wait_readable
-        byte = @io.getbyte.chr
-        if byte == "\n"
-          puts "got end of message #{message.inspect}"
-          got_message($1) if message =~ /^#?>(\d{22})\r\r$/
-          message.clear
-        elsif message.empty? && byte == '#' && !@io.ready?
-          # wait for a 50ms
-          break if sleep(0.05) && !@io.ready?
-        else
-          message << byte
-        end
-      end
     end
 
     COMMANDS = {
@@ -117,10 +94,33 @@ module Monoprice10761
     private
 
     def write(message)
-      puts "writing #{message.inspect}"
-      @io.write(message)
-      @io.wait_readable
-      read_messages
+      @mutex.synchronize do
+        puts "writing #{message.inspect}"
+        @io.write(message)
+        @io.wait_readable
+        read_messages
+      end
+    end
+
+    def read_messages
+      return unless @io.ready?
+
+      message = ''
+      loop do
+        @io.wait_readable
+        byte = @io.getbyte.chr
+
+        if byte == "\n"
+          puts "got end of message #{message.inspect}"
+          got_message($1) if message =~ /^#?>(\d{22})\r\r$/
+          message.clear
+        elsif message.empty? && byte == '#' && !@io.ready?
+          # wait for a 50ms
+          break if sleep(0.05) && !@io.ready?
+        else
+          message << byte
+        end
+      end
     end
 
     def got_message(message)

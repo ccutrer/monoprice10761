@@ -42,7 +42,7 @@ class MQTTBridge
         node.property("bass", "Bass", :integer, zone.bass, format: 0..14) { |val| zone.bass = val }
         node.property("balance", "L/R Balance", :integer, zone.balance, format: -10..10) { |val| zone.balance = val }
         node.property("channel", "Input Channel", :integer, zone.channel, format: 1..6) { |val| zone.channel = val }
-        node.property("keypad-connected", "Keypad Connected", :booelan, zone.keypad_connected)
+        node.property("keypad-connected", "Keypad Connected", :boolean, zone.keypad_connected)
       end
     end
   end
