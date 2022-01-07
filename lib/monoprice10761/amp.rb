@@ -95,7 +95,6 @@ module Monoprice10761
 
     def write(message)
       @mutex.synchronize do
-        puts "writing #{message.inspect}"
         @io.write(message)
         @io.wait_readable
         read_messages
@@ -111,7 +110,6 @@ module Monoprice10761
         byte = @io.getbyte.chr
 
         if byte == "\n"
-          puts "got end of message #{message.inspect}"
           got_message($1) if message =~ /^#?>(\d{22})\r\r$/
           message.clear
         elsif message.empty? && byte == '#' && !@io.ready?
